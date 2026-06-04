@@ -1,0 +1,29 @@
+Deepfake Detection: A Systematic Literature Review
+
+IEEE Access and Machine Learning,Volume:10,Issue Date:24.February.2022
+
+Deepfake detection, video or image manipulation, digital media forensics, systematic
+literature review.
+
+Deepfake_Detection
+
+
+deepfake_detection
+
+
+
+deepfake_detection_type
+
+url
+ipaddress
+videoname
+original_width
+original_height
+country
+locale
+latitude
+longitude
+Prediction
+
+
+
