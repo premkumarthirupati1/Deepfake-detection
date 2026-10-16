@@ -1,102 +1,121 @@
 {% extends 'SProvider/design1.html' %}
+{% block title %}Model Accuracies Benchmark | Admin Console{% endblock %}
+
 {% block researchblock %}
+<div class="container-fluid px-lg-4">
+    <div class="card card-custom">
+        <div class="card-header-custom d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <h5 class="mb-1 fw-bold text-white">
+                    <i class="fa-solid fa-chart-column text-info me-2"></i> Classifier Accuracy Benchmark Comparison
+                </h5>
+                <p class="text-secondary small mb-0">Comparative evaluation across Naive Bayes, Linear SVM, Logistic Regression, Decision Tree, Gradient Boosting, and Voting Classifier</p>
+            </div>
+            <!-- Chart type switcher -->
+            <div class="btn-group rounded-pill p-1 bg-dark border border-secondary border-opacity-50">
+                <a href="{% url 'charts1' 'bar' %}" class="btn btn-sm {% if chart_type == 'bar' %}btn-info text-dark fw-bold{% else %}btn-dark text-secondary{% endif %} rounded-pill px-3">
+                    <i class="fa-solid fa-chart-bar me-1"></i> Bar Chart
+                </a>
+                <a href="{% url 'charts1' 'line' %}" class="btn btn-sm {% if chart_type == 'line' %}btn-info text-dark fw-bold{% else %}btn-dark text-secondary{% endif %} rounded-pill px-3">
+                    <i class="fa-solid fa-chart-line me-1"></i> Line Chart
+                </a>
+                <a href="{% url 'charts1' 'polarArea' %}" class="btn btn-sm {% if chart_type == 'polarArea' %}btn-info text-dark fw-bold{% else %}btn-dark text-secondary{% endif %} rounded-pill px-3">
+                    <i class="fa-solid fa-circle-nodes me-1"></i> Polar
+                </a>
+            </div>
+        </div>
 
-<style>
-    body{
-	background-color: #FFFFFF;
-    }
-    .menu table{
-        width:100%;
-        text-align:center;
-
-    }
-
-    .menu table td:hover{
-         background:rgb(0,0,0);
-    }
-
-     .menu table td{
-          background: #584b4f;
-     }
-
-     .menu table,.menu table th,.menu table td {
-          border: ;
-          border-collapse: collapse;
-     }
-
-     .menu table th,.menu table  td {
-          padding: 15px;
-     }
-     .topic h1{
-           color:white;
-           padding:2px;
-           text-align:center;
-           border-style:none;
-           height:100px;
-           width:1330px;
-           float:left;
-     }
-     #chartContainer{
-            width: 1180px;
-            margin-left: 205px;
-            margin-top: -354px;
-            position: fixed;
-     }
-     .sidemenu{
-     margin-top: 118px;
-     }
-</style>
-
+        <div class="card-body p-4">
+            <div class="row justify-content-center">
+                <div class="col-lg-10" style="position: relative; min-height: 420px; max-height: 550px;">
+                    <canvas id="accuracyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
-window.onload = function() {
+document.addEventListener("DOMContentLoaded", function () {
+    const labels = [
+        {% for o in form %}
+            "{{ o.names }}",
+        {% endfor %}
+    ];
 
-var chart = new CanvasJS.Chart("chartContainer", {
-	animationEnabled: true,
-	title: {
-		text: ""
-	},
-	data: [{
-	{% if chart_type == "line" %}
-		type: "line",
-	{% elif chart_type == "pie" %}
-		type: "pie",
-	{% elif chart_type == "spline" %}
-		type: "spline",
-	{% endif %}
-		startAngle: 240,
-		yValueFormatString: "##0.00\"%\"",
-		indexLabel: "{label} {y}",
-		dataPoints: [
-		{% for o in form %}
-			{y: {{o.dcount}}, label: "{{o.names}}"},
-		{% endfor %}
-		]
-	}]
+    const data = [
+        {% for o in form %}
+            {{ o.dcount }},
+        {% endfor %}
+    ];
+
+    const palette = [
+        'rgba(56, 189, 248, 0.8)',
+        'rgba(168, 85, 247, 0.8)',
+        'rgba(244, 63, 94, 0.8)',
+        'rgba(234, 179, 8, 0.8)',
+        'rgba(16, 185, 129, 0.8)',
+        'rgba(99, 102, 241, 0.8)'
+    ];
+
+    const borderPalette = [
+        '#38bdf8',
+        '#a855f7',
+        '#f43f5e',
+        '#eab308',
+        '#10b981',
+        '#6366f1'
+    ];
+
+    const ctx = document.getElementById('accuracyChart').getContext('2d');
+    const chartType = "{{ chart_type|default:'bar' }}";
+
+    new Chart(ctx, {
+        type: chartType,
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Model Accuracy (%)',
+                data: data,
+                backgroundColor: chartType === 'line' ? 'rgba(56, 189, 248, 0.2)' : palette.slice(0, labels.length),
+                borderColor: chartType === 'line' ? '#38bdf8' : borderPalette.slice(0, labels.length),
+                borderWidth: 2,
+                borderRadius: chartType === 'bar' ? 8 : 0,
+                fill: chartType === 'line',
+                tension: 0.35
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: chartType !== 'bar',
+                    position: 'top',
+                    labels: { color: '#cbd5e1' }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return ` Accuracy: ${context.parsed.y !== undefined ? context.parsed.y : context.parsed}%`;
+                        }
+                    }
+                }
+            },
+            scales: (chartType === 'bar' || chartType === 'line') ? {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                    ticks: { color: '#94a3b8', callback: v => v + '%' }
+                },
+                x: {
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#cbd5e1' }
+                }
+            } : {}
+        }
+    });
 });
-chart.render();
-
-}
-
 </script>
-<body>
-<br>
-<div class="topic">
-
-
-
-<div class="sidemenu">
-    <h3 style="color:black;margin-left:60px;margin-top:80px"><a href="{% url 'charts1' 'pie' %}" >PIE CHAERT<br>
-        <br>
-        <br>
-        <br>
-      <br>
-     </a><a href="{% url 'charts1' 'line' %}">LINE CHART</a></h3>
-    <h3 style="color:white;margin-left:60px;margin-top:100px;"><a href="{% url 'charts1' 'spline' %}"></a></h3>
-</div>
-<div id="chartContainer" class="graph"></div>
-<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
-</div>
-
-</body>
 {% endblock %}

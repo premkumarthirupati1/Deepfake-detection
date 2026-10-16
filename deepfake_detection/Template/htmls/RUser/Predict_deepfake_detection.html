@@ -1,134 +1,203 @@
 {% extends 'RUser/design.html' %}
+{% block title %}Predict Deepfake Manipulation | Digital Forensics{% endblock %}
+
 {% block userblock %}
+<div class="container py-3">
+    <!-- Header banner -->
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h2 class="fw-bold text-white mb-2">
+                <i class="fa-solid fa-wand-magic-sparkles text-primary me-2"></i> Deepfake Manipulation Detector
+            </h2>
+            <p class="text-secondary small max-w-700 mx-auto">
+                Evaluate digital video metadata and forensic token signatures using the literature-reviewed Multi-Model Voting Classifier.
+            </p>
+        </div>
+    </div>
 
+    <div class="row g-4 justify-content-center">
+        <!-- Form Column -->
+        <div class="col-lg-7">
+            <div class="card card-custom">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-white fs-6">
+                        <i class="fa-solid fa-file-video text-primary me-2"></i> Video & Forensics Metadata Input
+                    </h5>
+                    <button type="button" class="btn btn-outline-info btn-sm rounded-pill" onclick="autoFillDemo()">
+                        <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Auto-Fill Sample Data
+                    </button>
+                </div>
 
-<link rel="icon" href="images/icon.png" type="image/x-icon" />
+                <div class="card-body p-4">
+                    <form method="POST" id="predictForm">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small fw-semibold">Video Source URL *</label>
+                            <input type="text" name="url" id="field_url" class="form-control" placeholder="http://example.com/stream/video.mp4" value="{{ form_data.url|default:'' }}" required>
+                        </div>
 
-	<link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet">
-		<link href="https://fonts.googleapis.com/css?family=Righteous" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css?family=Fredoka+One" rel="stylesheet">
-
-
-
-		<style>
-			body {background-color:#000000;}
-			.container-fluid {padding:50px;}
-			.container{background-color:white;padding:50px;   }
-			#title{font-family: 'Fredoka One', cursive;
-}
-			.text-uppercase{
-			font-family: 'Righteous', cursive;
-
-			}
-			.tweettext{
-
-    border: 2px solid yellowgreen;
-    width: 904px;
-    height: 202px;
-    overflow: scroll;
-    background-color:;
-}
-		.style1 {
-	color: #FF0000;
-	font-weight: bold;
-}
-.style6 {
-	font-size: 18px;
-	color: #FFFF00;
-	font-weight: bold;
-}
-.style8 {color: #FFFF00; font-weight: bold; }
-        .style10 {font-size: 18px; color: #FF0000; font-weight: bold; }
-        .style11 {color: #FFFF00}
-        </style>
-
-	<body>
-	<div class="container-fluid">
-		<div class="container">
-
-			<div class="row">
-				<div class="col-md-5">
-
-                   <form role="form" method="POST" >
-						{% csrf_token %}
-						<fieldset>
-							<p class="text-uppercase pull-center style1">PREDICTION OF <span class="style10">DEEFAKE TYPE</span> !!! </p>
-                            <hr>
-
-                                {% csrf_token %}
-                                <table width="998" align="center">
-                                  <tr>
-                                    <td height="44" bgcolor="#FF0000"><div align="center" class="style8">Enter  url</div></td>
-                                    <td><textarea name="url"></textarea></td>
-                                    <td bgcolor="#FF0000"><div align="center"><span class="style11">Enter  Ipaddress</span></div></td>
-                                    <td><input type="text" name="ipaddress"></td>
-                                  </tr>
-                                  <tr>
-                                    <td height="44" bgcolor="#FF0000"><div align="center" class="style8">Enter  videoname</div></td>
-                                    <td><input type="text" name="videoname"></td>
-                                    <td bgcolor="#FF0000"><div align="center"><span class="style11">Enter original_width</span></div></td>
-                                    <td><input type="text" name="original_width"></td>
-                                  </tr>
-                                  <tr>
-                                    <td width="289" height="44" bgcolor="#FF0000"><div align="center" class="style8">
-                                      <div align="center">Enter original_height</div>
-                                    </div></td>
-                                    <td width="226"><input type="text" name="original_height"></td>
-                                    <td width="314" bgcolor="#FF0000"><div align="center"><span class="style11">Enter Country </span></div></td>
-                                    <td width="273"><input type="text" name="country"></td>
-                                  </tr>
-                                  
-                                  <tr>
-                                    <td height="44" bgcolor="#FF0000"><div align="center" class="style8">
-                                      <div align="center">Enter <span class="style11">locality</span></div>
-                                    </div></td>
-                                    <td><input type="text" name="locale"></td>
-                                    <td bgcolor="#FF0000"><div align="center"><span class="style11">Enter<strong> latitude</strong></span></div></td>
-                                    <td><input type="text" name="latitude"></td>
-                                  </tr>
-                                  <tr>
-                                    <td height="44" bgcolor="#FF0000"><div align="center" class="style8">
-                                      <div align="center">Enter <span class="style11"> longitude</span></div>
-                                    </div></td>
-                                    <td><input type="text" name="longitude"></td>
-                                    <td bgcolor="#FFFFFF"><input name="submit" type="submit" class="style1" value="Predict"></td>
-                                    <td>&nbsp;</td>
-                                  </tr>
-                                </table>
-					 </fieldset>
-				  </form>
-
-
- 					<form role="form" method="POST" >
-						{% csrf_token %}
-						<fieldset>
-
-                            <hr>
-                            <div>
-                              <table width="549" height="52" border="0" align="center" >
-                                    <tr><td width="308" bgcolor="#FF0000"><div align="center"><span class="style6">DEEPFAKE PREDICTION TYPE</span> :: </div></td>
-
-
-
-                                      <td width="163" bgcolor="#FFFFFF" style="color:red; font-size:20px; font-family:fantasy" ><div align="center">{{objs}}</div></td></tr>
-                      </table>
-
-
-
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-semibold">Video Filename *</label>
+                                <input type="text" name="videoname" id="field_videoname" class="form-control" placeholder="e.g. aznyksihgl.mp4" value="{{ form_data.videoname|default:'' }}" required>
                             </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-semibold">IP Address</label>
+                                <input type="text" name="ipaddress" id="field_ipaddress" class="form-control" placeholder="e.g. 192.168.1.1" value="{{ form_data.ipaddress|default:'' }}">
+                            </div>
+                        </div>
 
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-semibold">Original Width (px)</label>
+                                <input type="number" name="original_width" id="field_width" class="form-control" placeholder="1920" value="{{ form_data.original_width|default:'1920' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-semibold">Original Height (px)</label>
+                                <input type="number" name="original_height" id="field_height" class="form-control" placeholder="1080" value="{{ form_data.original_height|default:'1080' }}">
+                            </div>
+                        </div>
 
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-semibold">Country</label>
+                                <input type="text" name="country" id="field_country" class="form-control" placeholder="e.g. United States" value="{{ form_data.country|default:'' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-semibold">Locality / City</label>
+                                <input type="text" name="locale" id="field_locale" class="form-control" placeholder="e.g. California" value="{{ form_data.locale|default:'' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-semibold">Latitude</label>
+                                <input type="text" name="latitude" id="field_latitude" class="form-control" placeholder="e.g. 37.7749" value="{{ form_data.latitude|default:'' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-semibold">Longitude</label>
+                                <input type="text" name="longitude" id="field_longitude" class="form-control" placeholder="e.g. -122.4194" value="{{ form_data.longitude|default:'' }}">
+                            </div>
+                        </div>
 
+                        <button type="submit" class="btn btn-primary-custom w-100 py-3 fs-6">
+                            <i class="fa-solid fa-magnifying-glass-chart me-2"></i> Classify Media Authenticity
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
 
-						</fieldset>
-					</form>
-				</div>
+        <!-- Result Column -->
+        <div class="col-lg-5">
+            <div class="card card-custom h-100">
+                <div class="card-header-custom">
+                    <h5 class="mb-0 fw-bold text-white fs-6">
+                        <i class="fa-solid fa-microscope text-primary me-2"></i> Forensic Analysis Report
+                    </h5>
+                </div>
 
-				<div class="col-md-2">
-					<!-------null------>
-				</div>
+                <div class="card-body p-4 d-flex flex-column justify-content-center align-items-center text-center">
+                    {% if objs %}
+                        <div class="mb-3">
+                            {% if objs == 'REAL' %}
+                                <div class="rounded-circle p-4 d-inline-flex align-items-center justify-content-center mb-3" style="background: rgba(16, 185, 129, 0.15); border: 2px solid #10b981; width: 110px; height: 110px;">
+                                    <i class="fa-solid fa-circle-check fa-4x text-success"></i>
+                                </div>
+                                <h3 class="fw-bolder text-success mb-1">AUTHENTIC MEDIA</h3>
+                                <div class="badge-real d-inline-block fs-6 mb-3">STATUS: REAL VIDEO</div>
+                                <p class="text-secondary small px-3">
+                                    The multi-model voting classifier detected no statistical or metadata anomalies typical of deepfake manipulation.
+                                </p>
+                            {% else %}
+                                <div class="rounded-circle p-4 d-inline-flex align-items-center justify-content-center mb-3" style="background: rgba(239, 68, 68, 0.15); border: 2px solid #ef4444; width: 110px; height: 110px;">
+                                    <i class="fa-solid fa-triangle-exclamation fa-4x text-danger"></i>
+                                </div>
+                                <h3 class="fw-bolder text-danger mb-1">SYNTHETIC MANIPULATION DETECTED</h3>
+                                <div class="badge-fake d-inline-block fs-6 mb-3">STATUS: FAKE / DEEPFAKE</div>
+                                <p class="text-secondary small px-3">
+                                    Forensic token signatures and source distribution indicate synthetic generation or face/swap manipulation.
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <div class="w-100 p-3 rounded-3 bg-dark border border-secondary border-opacity-25 text-start mt-auto">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <small class="text-secondary">Evaluated Video:</small>
+                                <span class="fw-semibold text-white small font-monospace">{{ record.videoname }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <small class="text-secondary">Ensemble Model:</small>
+                                <span class="badge bg-secondary text-white font-monospace">Voting (NB+SVM+LR)</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-secondary">Inference Latency:</small>
+                                <span class="badge bg-success-subtle text-success">&lt; 5 ms</span>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="p-4 text-center">
+                            <div class="rounded-circle p-4 d-inline-flex align-items-center justify-content-center bg-dark text-secondary mb-3" style="width: 90px; height: 90px;">
+                                <i class="fa-solid fa-radar fa-3x"></i>
+                            </div>
+                            <h5 class="fw-bold text-white mb-2">Awaiting Forensic Input</h5>
+                            <p class="text-secondary small mb-4">
+                                Enter the video source metadata or click <strong>Auto-Fill Sample Data</strong> to evaluate media authenticity.
+                            </p>
+                            <span class="badge bg-dark border border-secondary text-secondary font-monospace">Ready for Inference</span>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
+</div>
+
+<script>
+function autoFillDemo() {
+    const samples = [
+        {
+            url: "http://www.avevaconstruction.com/blesstool/image.htm",
+            videoname: "lxnqzocgaq.mp4",
+            ipaddress: "175.180.184.106",
+            width: "223",
+            height: "217",
+            country: "Taiwan",
+            locale: "Taipei",
+            latitude: "25.0392",
+            longitude: "121.525"
+        },
+        {
+            url: "https://www.velocidrone.com/",
+            videoname: "ddvgrczjno.mp4",
+            ipaddress: "213.215.43.23",
+            width: "155",
+            height: "155",
+            country: "France",
+            locale: "Paris",
+            latitude: "48.86",
+            longitude: "2.35"
+        },
+        {
+            url: "http://creative-punch.net/2014/10/intro-html5-speech-synthesis-api/",
+            videoname: "nuzbbjlaed.mp4",
+            ipaddress: "202.85.214.186",
+            width: "154",
+            height: "155",
+            country: "China",
+            locale: "Beijing",
+            latitude: "35.0",
+            longitude: "105.0"
+        }
+    ];
+
+    const pick = samples[Math.floor(Math.random() * samples.length)];
+    document.getElementById('field_url').value = pick.url;
+    document.getElementById('field_videoname').value = pick.videoname;
+    document.getElementById('field_ipaddress').value = pick.ipaddress;
+    document.getElementById('field_width').value = pick.width;
+    document.getElementById('field_height').value = pick.height;
+    document.getElementById('field_country').value = pick.country;
+    document.getElementById('field_locale').value = pick.locale;
+    document.getElementById('field_latitude').value = pick.latitude;
+    document.getElementById('field_longitude').value = pick.longitude;
+}
+</script>
 {% endblock %}
-    <tr>

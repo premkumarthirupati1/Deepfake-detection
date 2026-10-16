@@ -1,25 +1,22 @@
-
-
 import os
+from pathlib import Path
+import pymysql
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+pymysql.version_info = (2, 2, 7, "final", 0)
+pymysql.install_as_MySQLdb()
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'm+1edl5m-5@u9u!b8-=4-4mq&o1%agco2xpl8c!7sn7!eowjk#'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'm+1edl5m-5@u9u!b8-=4-4mq&o1%agco2xpl8c!7sn7!eowjk#')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() in ('1', 'true', 'yes')
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['*']
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -31,7 +28,6 @@ INSTALLED_APPS = [
     'Service_Provider',
 ]
 
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -42,13 +38,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-
 ROOT_URLCONF = 'deepfake_detection.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [(os.path.join(BASE_DIR,'Template/htmls'))],
+        'DIRS': [os.path.join(BASE_DIR, 'Template', 'htmls')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -63,27 +58,49 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'deepfake_detection.wsgi.application'
 
+# Database configuration with intelligent MySQL / SQLite fallback
+def get_database_config():
+    use_sqlite = os.environ.get('DJANGO_USE_SQLITE', '').lower() in ('1', 'true', 'yes')
+    if not use_sqlite:
+        db_user = os.environ.get('DB_USER', 'root')
+        db_password = os.environ.get('DB_PASSWORD', '')
+        db_host = os.environ.get('DB_HOST', '127.0.0.1')
+        db_port = int(os.environ.get('DB_PORT', '3306'))
+        db_name = os.environ.get('DB_NAME', 'deepfake_detection')
+        try:
+            conn = pymysql.connect(
+                host=db_host,
+                user=db_user,
+                password=db_password,
+                port=db_port,
+                connect_timeout=2
+            )
+            with conn.cursor() as cursor:
+                cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{db_name}` DEFAULT CHARACTER SET utf8mb4;")
+            conn.close()
+            return {
+                'ENGINE': 'django.db.backends.mysql',
+                'NAME': db_name,
+                'USER': db_user,
+                'PASSWORD': db_password,
+                'HOST': db_host,
+                'PORT': str(db_port),
+                'OPTIONS': {'charset': 'utf8mb4'},
+            }
+        except Exception:
+            pass
 
-# Database
-# https://docs.djangoproject.com/en/3.0/ref/settings/#databases
+    # Seamless fallback to SQLite
+    return {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'deepfake_detection',
-        'USER':'root',
-        'PASSWORD': '',
-        'HOST' :'127.0.0.1',
-        'PORT' :'3306',
-    }
+    'default': get_database_config()
 }
 
-
-
-
 # Password validation
-# https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -99,29 +116,20 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
-# https://docs.djangoproject.com/en/3.0/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
-USE_L10N = True
-
 USE_TZ = True
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.0/howto/static-files/
-
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR,'Template/images')]
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'Template', 'images')
+]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'Template/media')
-
-STATIC_ROOT = '/static/'
-
-STATIC_URL = '/static/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'Template', 'media')

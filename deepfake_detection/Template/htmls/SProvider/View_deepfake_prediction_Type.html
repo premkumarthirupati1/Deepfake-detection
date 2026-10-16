@@ -1,105 +1,96 @@
 {% extends 'SProvider/design1.html' %}
+{% block title %}Deepfake Prediction Audit Log | Admin Console{% endblock %}
+
 {% block researchblock %}
+<div class="container-fluid px-lg-4">
+    <div class="card card-custom">
+        <div class="card-header-custom d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <h5 class="mb-1 fw-bold text-white">
+                    <i class="fa-solid fa-clipboard-list text-info me-2"></i> Deepfake Predictions Audit Trail
+                </h5>
+                <p class="text-secondary small mb-0">Complete historical forensic classification records captured by the surveillance system</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{% url 'Download_Trained_DataSets' %}" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                    <i class="fa-solid fa-file-excel me-1"></i> Export to Excel (.xlsx)
+                </a>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
+                    Total Records: {{ list_objects|length }}
+                </span>
+            </div>
+        </div>
 
-
-<link rel="icon" href="images/icon.png" type="image/x-icon" />
-
-	<link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet">
-		<link href="https://fonts.googleapis.com/css?family=Righteous" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css?family=Fredoka+One" rel="stylesheet">
-
-
-
-		<style>
-			body {background-color:#000000;}
-			.container-fluid {padding:50px;}
-			.container{background-color:white;padding:50px;   }
-			#title{font-family: 'Fredoka One', cursive;
-}
-			.text-uppercase{
-			font-family: 'Righteous', cursive;
-
-			}
-			.tweettext{
-
-    border: 2px solid yellowgreen;
-    width: 1104px;
-    height: 442px;
-    overflow: scroll;
-    background-color:;
-}
-		.style1 {
-	color: #FF0000;
-	font-weight: bold;
-}
-.style12 {color: #FFFF00; font-weight: bold; }
-        </style>
-
-	<body>
-	<div class="container-fluid">
-		<div class="container">
-
-			<div class="row">
-				<div class="col-md-5">
- 					<form role="form" method="POST" >
-						{% csrf_token %}
-						<fieldset>
-							<p align="center" class="text-uppercase pull-center style1">View Deepfake Prediction Type Details  !!! </p>
-                            <hr>
-                            <div class="tweettext">
-                               <table width="739" border="5" align="center" bordercolor="#FF00FF">
-
-                                        <tr>
-
-<td width="366" bgcolor="#FF0000"><div align="center" class="style12"><span class="style8 style6">url</span></div></td>
-<td width="366" bgcolor="#FF0000"><div align="center" class="style12"><span class="style8 style6">ipaddress</span></div></td>
-<td width="366" bgcolor="#FF0000"><div align="center" class="style12"><span class="style8 style6">videoname</span></div></td>
-<td width="366" bgcolor="#FF0000"><div align="center" class="style12"><span class="style8 style6">original_width</span></div></td>
-<td width="366" bgcolor="#FF0000"><div align="center" class="style12"><span class="style8 style6">original_height</span></div></td>
-<td width="366" bgcolor="#FF0000"><div align="center" class="style12"><span class="style8 style6">country</span></div></td>
-<td width="366" bgcolor="#FF0000"><div align="center" class="style12"><span class="style8 style6">locale</span></div></td>
-<td width="366" bgcolor="#FF0000"><div align="center" class="style12"><span class="style8 style6">latitude</span></div></td>
-<td width="366" bgcolor="#FF0000"><div align="center" class="style12"><span class="style8 style6">longitude</span></div></td>
-<td width="366" bgcolor="#FF0000"><div align="center" class="style12"><span class="style8 style6">Prediction</span></div></td>
-
-
-
-                      </tr>
-                            {% for object in list_objects %}
-                      <tr>
-
-                          <td bgcolor="#FFFFFF" style="color:red; font-size:20px; font-family:fantasy" ><div align="left">{{object.url}}</div></td>
-<td bgcolor="#FFFFFF" style="color:red; font-size:20px; font-family:fantasy" ><div align="left">{{object.ipaddress}}</div></td>
-<td bgcolor="#FFFFFF" style="color:red; font-size:20px; font-family:fantasy" ><div align="left">{{object.videoname}}</div></td>
-<td bgcolor="#FFFFFF" style="color:red; font-size:20px; font-family:fantasy" ><div align="left">{{object.original_width}}</div></td>
-<td bgcolor="#FFFFFF" style="color:red; font-size:20px; font-family:fantasy" ><div align="left">{{object.original_height}}</div></td>
-<td bgcolor="#FFFFFF" style="color:red; font-size:20px; font-family:fantasy" ><div align="left">{{object.country}}</div></td>
-<td bgcolor="#FFFFFF" style="color:red; font-size:20px; font-family:fantasy" ><div align="left">{{object.locale}}</div></td>
-<td bgcolor="#FFFFFF" style="color:red; font-size:20px; font-family:fantasy" ><div align="left">{{object.latitude}}</div></td>
-<td bgcolor="#FFFFFF" style="color:red; font-size:20px; font-family:fantasy" ><div align="left">{{object.longitude}}</div></td>
-<td bgcolor="#FFFFFF" style="color:red; font-size:20px; font-family:fantasy" ><div align="left">{{object.Prediction}}</div></td>
-
-
-
+        <div class="card-body p-0">
+            <div class="table-responsive" style="max-height: 700px; overflow-y: auto;">
+                <table class="table table-dark-custom mb-0 text-nowrap">
+                    <thead class="sticky-top">
+                        <tr>
+                            <th># ID</th>
+                            <th>Prediction</th>
+                            <th>Video Filename</th>
+                            <th>Dimensions</th>
+                            <th>Country & Locale</th>
+                            <th>IP Address</th>
+                            <th>Source URL / Domain</th>
+                            <th>Coordinates</th>
                         </tr>
-
-                                        {% endfor %}
-                      </table>
-
-                            </div>
-
-
-
-
-						</fieldset>
-					</form>
-				</div>
-
-				<div class="col-md-2">
-					<!-------null------>
-				</div>
+                    </thead>
+                    <tbody>
+                        {% for r in list_objects %}
+                            <tr>
+                                <td class="font-monospace text-secondary">#{{ r.id }}</td>
+                                <td>
+                                    {% if r.Prediction|upper == 'REAL' %}
+                                        <span class="badge-real">
+                                            <i class="fa-solid fa-circle-check me-1"></i> REAL
+                                        </span>
+                                    {% else %}
+                                        <span class="badge-fake">
+                                            <i class="fa-solid fa-triangle-exclamation me-1"></i> FAKE
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="font-monospace fw-semibold text-white">
+                                        <i class="fa-regular fa-file-video text-secondary me-1"></i> {{ r.videoname }}
+                                    </span>
+                                </td>
+                                <td class="font-monospace text-secondary">
+                                    {{ r.original_width }} × {{ r.original_height }}
+                                </td>
+                                <td>
+                                    <span class="text-white">{{ r.country|default:"—" }}</span>
+                                    {% if r.locale and r.locale != 'NA' %}
+                                        <small class="text-secondary d-block">{{ r.locale }}</small>
+                                    {% endif %}
+                                </td>
+                                <td class="font-monospace text-secondary">{{ r.ipaddress|default:"—" }}</td>
+                                <td>
+                                    <span class="d-inline-block text-truncate text-secondary" style="max-width: 260px;" title="{{ r.url }}">
+                                        {{ r.url }}
+                                    </span>
+                                </td>
+                                <td class="font-monospace small text-secondary">
+                                    {% if r.latitude and r.longitude %}
+                                        {{ r.latitude }}, {{ r.longitude }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-secondary">
+                                    <i class="fa-solid fa-folder-open fa-2x mb-3 d-block"></i>
+                                    No prediction records logged yet.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
+</div>
 {% endblock %}
-    <tr>

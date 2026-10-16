@@ -1,84 +1,77 @@
 {% extends 'RUser/design.html' %}
+{% block title %}User Profile | Deepfake Forensics{% endblock %}
+
 {% block userblock %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card card-custom">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-white">
+                        <i class="fa-solid fa-id-badge text-primary me-2"></i> User Profile & Forensic Credentials
+                    </h5>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Active Forensic Analyst</span>
+                </div>
 
-<link rel="icon" href="images/icon.png" type="image/x-icon" />
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex flex-column flex-md-row align-items-center gap-4 mb-4 pb-4 border-bottom border-secondary border-opacity-25">
+                        <div class="rounded-circle bg-primary bg-opacity-20 text-primary d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2.2rem; flex-shrink: 0;">
+                            <i class="fa-solid fa-user-astronaut"></i>
+                        </div>
+                        <div class="text-center text-md-start">
+                            <h3 class="fw-bold text-white mb-1">{{ object.username }}</h3>
+                            <p class="text-secondary small mb-1">{{ object.email }}</p>
+                            <span class="badge bg-dark border border-secondary text-light font-monospace small">Registered Client</span>
+                        </div>
+                    </div>
 
-	<link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet">
-		<link href="https://fonts.googleapis.com/css?family=Righteous" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css?family=Fredoka+One" rel="stylesheet">
-
-
-
-		<style>
-			body {background-color:#000000;}
-			.container-fluid {padding:50px;}
-			.container{background-color:white;padding:50px;   }
-			#title{font-family: 'Fredoka One', cursive;
-}
-			.text-uppercase{
-			font-family: 'Righteous', cursive;
-
-			}
-		.style1 {
-	color: #FF0000;
-	font-weight: bold;
-}
-        </style>
-
-	<body>
-	<div class="container-fluid">
-		<div class="container">
-
-			<div class="row">
-				<div class="col-md-5">
- 					<form role="form" method="POST" >
-						{% csrf_token %}
-						<fieldset>
-							<p class="text-uppercase pull-center style1">YOUR PROFILE DETAILS !!! </p>
-                            <hr>
- 							<div class="form-group">
-                                <P><span class="style1">USER NAME</span> = {{object.username}}</P>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25">
+                                <small class="text-secondary d-block mb-1"><i class="fa-solid fa-phone me-1"></i> Contact Number</small>
+                                <span class="fw-semibold text-white">{{ object.phoneno|default:"Not Provided" }}</span>
                             </div>
+                        </div>
 
-							<div class="form-group">
-                                <P><span class="style1">EMAIL</span> = {{object.email}}</P>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25">
+                                <small class="text-secondary d-block mb-1"><i class="fa-solid fa-earth-americas me-1"></i> Country</small>
+                                <span class="fw-semibold text-white">{{ object.country|default:"Not Provided" }}</span>
                             </div>
+                        </div>
 
-							<div class="form-group">
-                                <P><span class="style1">PASSWORD</span> = {{object.password}}</P>
-							</div>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25">
+                                <small class="text-secondary d-block mb-1"><i class="fa-solid fa-map-location-dot me-1"></i> State / Province</small>
+                                <span class="fw-semibold text-white">{{ object.state|default:"Not Provided" }}</span>
+                            </div>
+                        </div>
 
-							<div class="form-group">
-                                <p><span class="style1">MOBILE NO</span> = {{object.phoneno}}</p>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25">
+                                <small class="text-secondary d-block mb-1"><i class="fa-solid fa-city me-1"></i> City</small>
+                                <span class="fw-semibold text-white">{{ object.city|default:"Not Provided" }}</span>
+                            </div>
+                        </div>
 
-							</div>
+                        {% if object.address %}
+                        <div class="col-12">
+                            <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25">
+                                <small class="text-secondary d-block mb-1"><i class="fa-solid fa-building me-1"></i> Address</small>
+                                <span class="fw-semibold text-white">{{ object.address }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
 
-							<div class="form-group">
-                                <p><span class="style1">COUNTRY</span> = {{object.country}}</p>
-
-							</div>
-
-							<div class="form-group">
-                                <p><span class="style1">STATE</span> = {{object.state}}</p>
-
-							</div>
-
-							<div class="form-group">
-                                <p><span class="style1">CITY</span> = {{object.city}}</p>
-
-							</div>
-
-
-
-
-						</fieldset>
-					</form>
-				</div>
-
-				<div class="col-md-2">
-					<!-------null------>
-				</div>
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-4 border-top border-secondary border-opacity-25">
+                        <a href="{% url 'Predict_deepfake_detection' %}" class="btn btn-primary-custom">
+                            <i class="fa-solid fa-bolt me-1"></i> Launch Deepfake Detection
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+</div>
 {% endblock %}

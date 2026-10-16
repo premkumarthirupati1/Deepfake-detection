@@ -1,187 +1,214 @@
-from django.db.models import Count
-from django.db.models import Q
+import os
+from pathlib import Path
 from django.shortcuts import render, redirect, get_object_or_404
-import datetime
-import openpyxl
+from django.contrib import messages
+from django.conf import settings
+from Remote_User.models import ClientRegister_Model, deepfake_detection_type, detection_ratio, detection_accuracy
+from deepfake_detection.ml_engine import predict_single
+from deepfake_detection.deep_learning.forensic_analyzer import analyze_image_file, analyze_video_file
 
-import numpy as np # linear algebra
-import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
-
-from sklearn.feature_extraction.text import CountVectorizer
-
-from sklearn.tree import DecisionTreeClassifier
-
-from sklearn.ensemble import VotingClassifier
-#model selection
-from sklearn.metrics import confusion_matrix, accuracy_score, plot_confusion_matrix, classification_report
-# Create your views here.
-from Remote_User.models import ClientRegister_Model,deepfake_detection_type,detection_ratio,detection_accuracy
 
 def login(request):
+    """Handles Remote User Authentication."""
+    if request.method == "POST":
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '').strip()
 
-
-    if request.method == "POST" and 'submit1' in request.POST:
-
-        username = request.POST.get('username')
-        password = request.POST.get('password')
         try:
-            enter = ClientRegister_Model.objects.get(username=username,password=password)
-            request.session["userid"] = enter.id
+            user = ClientRegister_Model.objects.get(username=username, password=password)
+            request.session["userid"] = user.id
+            request.session["username"] = user.username
+            messages.success(request, f"Welcome back, {user.username}!")
+            return redirect('video_scanner')
+        except ClientRegister_Model.DoesNotExist:
+            messages.error(request, "Invalid username or password. Please try again.")
 
-            return redirect('ViewYourProfile')
-        except:
-            pass
+    return render(request, 'RUser/login.html')
 
-    return render(request,'RUser/login.html')
 
-def Add_DataSet_Details(request):
-
-    return render(request, 'RUser/Add_DataSet_Details.html', {"excel_data": ''})
+def logout_view(request):
+    """Logs out the active user and clears the session."""
+    request.session.flush()
+    messages.info(request, "You have been logged out.")
+    return redirect('login')
 
 
 def Register1(request):
-
+    """Handles new client registration."""
     if request.method == "POST":
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        phoneno = request.POST.get('phoneno')
-        country = request.POST.get('country')
-        state = request.POST.get('state')
-        city = request.POST.get('city')
-        ClientRegister_Model.objects.create(username=username, email=email, password=password, phoneno=phoneno,
-                                            country=country, state=state, city=city)
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '').strip()
+        phoneno = request.POST.get('phoneno', '').strip()
+        country = request.POST.get('country', '').strip()
+        state = request.POST.get('state', '').strip()
+        city = request.POST.get('city', '').strip()
+        address = request.POST.get('address', '').strip()
+        gender = request.POST.get('gender', '').strip()
 
-        return render(request, 'RUser/Register1.html')
-    else:
-        return render(request,'RUser/Register1.html')
+        if not username or not password:
+            messages.error(request, "Username and password are required.")
+            return render(request, 'RUser/Register1.html')
+
+        if ClientRegister_Model.objects.filter(username=username).exists():
+            messages.error(request, f"Username '{username}' is already taken.")
+            return render(request, 'RUser/Register1.html')
+
+        ClientRegister_Model.objects.create(
+            username=username,
+            email=email,
+            password=password,
+            phoneno=phoneno,
+            country=country,
+            state=state,
+            city=city,
+            address=address,
+            gender=gender
+        )
+        messages.success(request, "Registration successful! You can now log in.")
+        return redirect('login')
+
+    return render(request, 'RUser/Register1.html')
+
 
 def ViewYourProfile(request):
-    userid = request.session['userid']
-    obj = ClientRegister_Model.objects.get(id= userid)
-    return render(request,'RUser/ViewYourProfile.html',{'object':obj})
+    """Displays the currently logged in user's profile."""
+    userid = request.session.get('userid')
+    if not userid:
+        messages.warning(request, "Please log in to view your profile.")
+        return redirect('login')
+
+    user = get_object_or_404(ClientRegister_Model, id=userid)
+    return render(request, 'RUser/ViewYourProfile.html', {'object': user})
 
 
 def Predict_deepfake_detection(request):
+    """
+    Sub-millisecond inference view powered by persistent ML Voting Classifier.
+    """
+    context = {}
+
     if request.method == "POST":
-        if request.method == "POST":
+        url = request.POST.get('url', '').strip()
+        ipaddress = request.POST.get('ipaddress', '').strip()
+        videoname = request.POST.get('videoname', '').strip()
+        original_width = request.POST.get('original_width', '').strip()
+        original_height = request.POST.get('original_height', '').strip()
+        country = request.POST.get('country', '').strip()
+        locale = request.POST.get('locale', '').strip()
+        latitude = request.POST.get('latitude', '').strip()
+        longitude = request.POST.get('longitude', '').strip()
 
-            url= request.POST.get('url')
-            ipaddress= request.POST.get('ipaddress')
-            videoname= request.POST.get('videoname')
-            original_width= request.POST.get('original_width')
-            original_height= request.POST.get('original_height')
-            country= request.POST.get('country')
-            locale= request.POST.get('locale')
-            latitude= request.POST.get('latitude')
-            longitude= request.POST.get('longitude')
+        val, pred_code = predict_single(videoname=videoname, url=url)
 
-            print(videoname)
+        record = deepfake_detection_type.objects.create(
+            url=url,
+            ipaddress=ipaddress,
+            videoname=videoname,
+            original_width=original_width,
+            original_height=original_height,
+            country=country,
+            locale=locale,
+            latitude=latitude,
+            longitude=longitude,
+            Prediction=val
+        )
 
-        data = pd.read_csv("Datasets.csv",encoding='latin-1')
+        context = {
+            'objs': val,
+            'prediction_code': pred_code,
+            'record': record,
+            'form_data': {
+                'url': url,
+                'ipaddress': ipaddress,
+                'videoname': videoname,
+                'original_width': original_width,
+                'original_height': original_height,
+                'country': country,
+                'locale': locale,
+                'latitude': latitude,
+                'longitude': longitude,
+            }
+        }
+        messages.success(request, f"Deepfake Prediction Completed: Video is classified as {val}!")
 
-        def mapping(label):
-            if (label == "FAKE"):
-                return 0
-            elif (label == "REAL"):
-                return 1
-
-        data['Results'] = data['label'].apply(mapping)
-
-        x = data['videoname']
-        y = data['Results']
-
-        cv = CountVectorizer(lowercase=False, strip_accents='unicode', ngram_range=(1, 1))
-
-       #cv = CountVectorizer()
-
-        print(x)
-        print("Y")
-        print(y)
-
-        x = cv.fit_transform(x)
-
-        models = []
-        from sklearn.model_selection import train_test_split
-        X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.20)
-        X_train.shape, X_test.shape, y_train.shape
-
-        print("Naive Bayes")
-
-        from sklearn.naive_bayes import MultinomialNB
-        NB = MultinomialNB()
-        NB.fit(X_train, y_train)
-        predict_nb = NB.predict(X_test)
-        naivebayes = accuracy_score(y_test, predict_nb) * 100
-        print(naivebayes)
-        print(confusion_matrix(y_test, predict_nb))
-        print(classification_report(y_test, predict_nb))
-        models.append(('naive_bayes', NB))
-
-        # SVM Model
-        print("SVM")
-        from sklearn import svm
-        lin_clf = svm.LinearSVC()
-        lin_clf.fit(X_train, y_train)
-        predict_svm = lin_clf.predict(X_test)
-        svm_acc = accuracy_score(y_test, predict_svm) * 100
-        print(svm_acc)
-        print("CLASSIFICATION REPORT")
-        print(classification_report(y_test, predict_svm))
-        print("CONFUSION MATRIX")
-        print(confusion_matrix(y_test, predict_svm))
-        models.append(('svm', lin_clf))
-
-        print("Logistic Regression")
-
-        from sklearn.linear_model import LogisticRegression
-        reg = LogisticRegression(random_state=0, solver='lbfgs').fit(X_train, y_train)
-        y_pred = reg.predict(X_test)
-        print("ACCURACY")
-        print(accuracy_score(y_test, y_pred) * 100)
-        print("CLASSIFICATION REPORT")
-        print(classification_report(y_test, y_pred))
-        print("CONFUSION MATRIX")
-        print(confusion_matrix(y_test, y_pred))
-        models.append(('logistic', reg))
+    return render(request, 'RUser/Predict_deepfake_detection.html', context)
 
 
+def video_scanner(request):
+    """
+    State-of-the-Art Deep Learning Media Forensic Scanner.
+    Accepts real video (.mp4, .avi, .mov) or image (.jpg, .png) uploads,
+    extracts facial frames with OpenCV, and runs PyTorch MesoInception-4 CNN
+    plus 2D FFT Frequency-Domain spectrum analysis.
+    """
+    context = {}
 
-        classifier = VotingClassifier(models)
-        classifier.fit(X_train, y_train)
-        y_pred = classifier.predict(X_test)
+    if request.method == "POST":
+        uploaded_file = request.FILES.get('media_file')
+        demo_choice = request.POST.get('demo_choice')
 
-        videoname1 = [videoname]
-        vector1 = cv.transform( videoname1).toarray()
-        predict_text = classifier.predict(vector1)
+        target_file_path = None
+        filename = "media_input"
 
-        pred = str(predict_text).replace("[", "")
-        pred1 = str(pred.replace("]", ""))
+        # Handle demo media
+        if demo_choice:
+            samples_dir = Path(settings.MEDIA_ROOT) / 'samples'
+            if demo_choice == 'demo_video':
+                target_file_path = samples_dir / 'sample_interview_clip.mp4'
+                filename = "sample_interview_clip.mp4"
+            elif demo_choice == 'demo_fake':
+                target_file_path = samples_dir / 'sample_deepfake_face.jpg'
+                filename = "sample_deepfake_face.jpg"
+            elif demo_choice == 'demo_real':
+                target_file_path = samples_dir / 'sample_real_portrait.jpg'
+                filename = "sample_real_portrait.jpg"
+        elif uploaded_file:
+            upload_dir = Path(settings.MEDIA_ROOT) / 'uploads'
+            upload_dir.mkdir(parents=True, exist_ok=True)
+            filename = uploaded_file.name
+            target_file_path = upload_dir / filename
 
-        prediction = int(pred1)
+            with open(target_file_path, 'wb+') as destination:
+                for chunk in uploaded_file.chunks():
+                    destination.write(chunk)
 
-        if prediction == 0:
-            val = 'FAKE'
-        elif prediction == 1:
-            val = 'REAL'
+        if target_file_path and target_file_path.exists():
+            ext = target_file_path.suffix.lower()
+            try:
+                if ext in ['.mp4', '.avi', '.mov', '.mkv', '.webm']:
+                    report = analyze_video_file(target_file_path)
+                elif ext in ['.jpg', '.jpeg', '.png', '.webp', '.bmp']:
+                    report = analyze_image_file(target_file_path)
+                else:
+                    messages.error(request, f"Unsupported file format '{ext}'. Please upload MP4, AVI, or JPG/PNG.")
+                    return render(request, 'RUser/video_scanner.html', context)
 
+                # Log to database
+                deepfake_detection_type.objects.create(
+                    url=f"Local Media Forensic Upload: {filename}",
+                    ipaddress="127.0.0.1",
+                    videoname=filename,
+                    original_width="Auto-detected",
+                    original_height="Auto-detected",
+                    country="Client Scanner",
+                    locale="Neural Forensics",
+                    latitude="0.0",
+                    longitude="0.0",
+                    Prediction=report['verdict']
+                )
 
-        print(prediction)
-        print(val)
+                context = {
+                    'report': report,
+                    'filename': filename,
+                    'file_ext': ext,
+                    'has_results': True
+                }
+                messages.success(request, f"Forensic CNN Analysis Complete: Media classified as {report['verdict']} ({report['confidence']}% confidence)")
 
-        deepfake_detection_type.objects.create(url=url,
-        ipaddress=ipaddress,
-        videoname=videoname,
-        original_width=original_width,
-        original_height=original_height,
-        country=country,
-        locale=locale,
-        latitude=latitude,
-        longitude=longitude,
-        Prediction=val)
+            except Exception as e:
+                messages.error(request, f"Forensic Processing Error: {str(e)}")
+        else:
+            messages.warning(request, "Please upload a media file or select a demo sample to scan.")
 
-        return render(request, 'RUser/Predict_deepfake_detection.html',{'objs': val})
-    return render(request, 'RUser/Predict_deepfake_detection.html')
-
-
-
+    return render(request, 'RUser/video_scanner.html', context)

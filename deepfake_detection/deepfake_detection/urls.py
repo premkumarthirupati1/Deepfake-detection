@@ -1,40 +1,39 @@
-"""deepfake_detection URL Configuration
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/3.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.conf.urls import url
+deepfake_detection URL Configuration
+Modernized for Django 5.x & Real Deep Learning Computer Vision Forensics
+"""
 from django.contrib import admin
-from Remote_User import views as remoteuser
-from deepfake_detection import settings
-from Service_Provider import views as serviceprovider
+from django.urls import path
+from django.conf import settings
 from django.conf.urls.static import static
-
+from Remote_User import views as remoteuser
+from Service_Provider import views as serviceprovider
 
 urlpatterns = [
-    url('admin/', admin.site.urls),
-    url(r'^$', remoteuser.login, name="login"),
-    url(r'^Register1/$', remoteuser.Register1, name="Register1"),
-    url(r'^Predict_deepfake_detection/$', remoteuser.Predict_deepfake_detection, name="Predict_deepfake_detection"),
-    url(r'^ViewYourProfile/$', remoteuser.ViewYourProfile, name="ViewYourProfile"),
-    url(r'^serviceproviderlogin/$',serviceprovider.serviceproviderlogin, name="serviceproviderlogin"),
-    url(r'View_Remote_Users/$',serviceprovider.View_Remote_Users,name="View_Remote_Users"),
-    url(r'^charts/(?P<chart_type>\w+)', serviceprovider.charts,name="charts"),
-    url(r'^charts1/(?P<chart_type>\w+)', serviceprovider.charts1, name="charts1"),
-    url(r'^likeschart/(?P<like_chart>\w+)', serviceprovider.likeschart, name="likeschart"),
-    url(r'^View_Deepfake_Prediction_Ratio/$', serviceprovider.View_Deepfake_Prediction_Ratio, name="View_Deepfake_Prediction_Ratio"),
-    url(r'^train_model/$', serviceprovider.train_model, name="train_model"),
-    url(r'^View_deepfake_prediction_Type/$', serviceprovider.View_deepfake_prediction_Type, name="View_deepfake_prediction_Type"),
-    url(r'^Download_Trained_DataSets/$', serviceprovider.Download_Trained_DataSets, name="Download_Trained_DataSets"),
+    path('admin/', admin.site.urls),
 
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # Remote User routes
+    path('', remoteuser.login, name="login"),
+    path('login/', remoteuser.login, name="user_login"),
+    path('logout/', remoteuser.logout_view, name="logout"),
+    path('Register1/', remoteuser.Register1, name="Register1"),
+    path('video_scanner/', remoteuser.video_scanner, name="video_scanner"),
+    path('Predict_deepfake_detection/', remoteuser.Predict_deepfake_detection, name="Predict_deepfake_detection"),
+    path('ViewYourProfile/', remoteuser.ViewYourProfile, name="ViewYourProfile"),
+
+    # Service Provider routes
+    path('serviceproviderlogin/', serviceprovider.serviceproviderlogin, name="serviceproviderlogin"),
+    path('serviceproviderlogout/', serviceprovider.serviceproviderlogout, name="serviceproviderlogout"),
+    path('View_Remote_Users/', serviceprovider.View_Remote_Users, name="View_Remote_Users"),
+    path('charts/<str:chart_type>/', serviceprovider.charts, name="charts"),
+    path('charts1/<str:chart_type>/', serviceprovider.charts1, name="charts1"),
+    path('likeschart/<str:like_chart>/', serviceprovider.likeschart, name="likeschart"),
+    path('View_Deepfake_Prediction_Ratio/', serviceprovider.View_Deepfake_Prediction_Ratio, name="View_Deepfake_Prediction_Ratio"),
+    path('train_model/', serviceprovider.train_model, name="train_model"),
+    path('View_deepfake_prediction_Type/', serviceprovider.View_deepfake_prediction_Type, name="View_deepfake_prediction_Type"),
+    path('Download_Trained_DataSets/', serviceprovider.Download_Trained_DataSets, name="Download_Trained_DataSets"),
+]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

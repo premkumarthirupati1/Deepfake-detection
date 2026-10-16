@@ -1,85 +1,91 @@
 {% extends 'SProvider/design1.html' %}
+{% block title %}Train & Evaluate Machine Learning Models | Admin Console{% endblock %}
+
 {% block researchblock %}
+<div class="container-fluid px-lg-4">
+    <!-- Header banner -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h4 class="fw-bold text-white mb-1">
+                <i class="fa-solid fa-brain text-info me-2"></i> Machine Learning Forensics Evaluation Suite
+            </h4>
+            <p class="text-secondary small mb-0">Multi-classifier training & benchmark against the 22,910-record literature forensic dataset</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'train_model' %}" class="btn btn-primary rounded-pill px-3">
+                <i class="fa-solid fa-rotate me-1"></i> Retrain All Models
+            </a>
+            <a href="{% url 'charts1' 'bar' %}" class="btn btn-outline-info rounded-pill px-3">
+                <i class="fa-solid fa-chart-column me-1"></i> View Accuracy Chart
+            </a>
+        </div>
+    </div>
 
+    <!-- Models Grid -->
+    <div class="row g-4 mb-4">
+        {% for o in objs %}
+            <div class="col-md-6 col-xl-4">
+                <div class="card card-custom p-4 h-100 position-relative">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="badge bg-secondary text-white font-monospace small mb-2">Classifier Algorithm</span>
+                            <h5 class="fw-bold text-white mb-0">{{ o.names }}</h5>
+                        </div>
+                        <div class="rounded-circle bg-info bg-opacity-10 text-info p-2">
+                            <i class="fa-solid fa-chart-simple"></i>
+                        </div>
+                    </div>
 
-<link rel="icon" href="images/icon.png" type="image/x-icon" />
+                    <div class="mt-auto pt-3 border-top border-secondary border-opacity-25">
+                        <small class="text-secondary d-block">Test Accuracy Score:</small>
+                        <div class="d-flex align-items-baseline gap-2">
+                            <h3 class="fw-bolder text-info mb-0">{{ o.ratio }}%</h3>
+                            <span class="badge bg-success-subtle text-success small">Evaluated</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
 
-	<link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet">
-		<link href="https://fonts.googleapis.com/css?family=Righteous" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css?family=Fredoka+One" rel="stylesheet">
+    <!-- Detailed Metrics Table (if available) -->
+    {% if metrics %}
+    <div class="card card-custom">
+        <div class="card-header-custom">
+            <h5 class="mb-0 fw-bold text-white">
+                <i class="fa-solid fa-table text-info me-2"></i> Comprehensive Performance Matrix (Accuracy, Precision, Recall, F1)
+            </h5>
+        </div>
 
-
-
-		<style>
-			body {background-color:#000000;}
-			.container-fluid {padding:50px;}
-			.container{background-color:white;padding:50px;   }
-			#title{font-family: 'Fredoka One', cursive;
-}
-			.text-uppercase{
-			font-family: 'Righteous', cursive;
-
-			}
-			.tweettext{
-
-    border: 2px solid yellowgreen;
-    width: 1104px;
-    height: 442px;
-    overflow: scroll;
-    background-color:;
-}
-		.style1 {
-	color: #FF0000;
-	font-weight: bold;
-}
-.style7 {color: #FFFF00}
-        </style>
-
-	<body>
-	<div class="container-fluid">
-		<div class="container">
-
-			<div class="row">
-				<div class="col-md-5">
-
-
-
- 					<form role="form" method="POST" >
-						{% csrf_token %}
-						<fieldset>
-                            <p align="center" class="text-uppercase pull-center style1">View Datasets Trained and Tested Results</p>
-
-                            <hr>
-                            <div>
-                               <table border="5" align="center" bordercolor="#FF00FF">
-                      <tr><td bgcolor="#FF0000"><div align="center"><span class="style10 style7">Model Type</span></div></td>
-                          <td bgcolor="#FF0000"><div align="center"><span class="style10 style7">Accuracy</span></div></td>
-                      </tr>
-                            {% for object in objs %}
-                      <tr>
-                                        <td bgcolor="#FFFFFF" style="color:red; font-size:20px; font-family:fantasy" ><div align="center">{{object.names}}</div></td>
-                                        <td bgcolor="#FF0000" style="font-family:monospace; font-size:19px; "><div align="center" class="style9"><span class="style7">{{object.ratio}}</span></div></td>
-                                 </tr>
-
-                                        {% endfor %}
-                      </table>
-
-
-
-                            </div>
-
-
-
-
-						</fieldset>
-					</form>
-				</div>
-
-				<div class="col-md-2">
-					<!-------null------>
-				</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark-custom mb-0">
+                    <thead>
+                        <tr>
+                            <th>Model Name</th>
+                            <th>Accuracy</th>
+                            <th>Precision</th>
+                            <th>Recall</th>
+                            <th>F1-Score</th>
+                            <th>Confusion Matrix [TN, FP / FN, TP]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for name, m in metrics.items %}
+                            <tr>
+                                <td class="fw-semibold text-white">{{ name }}</td>
+                                <td class="font-monospace fw-bold text-info">{{ m.accuracy }}%</td>
+                                <td class="font-monospace">{{ m.precision }}%</td>
+                                <td class="font-monospace">{{ m.recall }}%</td>
+                                <td class="font-monospace">{{ m.f1_score }}%</td>
+                                <td class="font-monospace text-secondary small">{{ m.confusion_matrix }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
+    {% endif %}
+</div>
 {% endblock %}
-    <tr>

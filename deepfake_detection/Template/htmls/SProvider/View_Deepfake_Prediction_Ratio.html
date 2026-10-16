@@ -1,84 +1,121 @@
 {% extends 'SProvider/design1.html' %}
+{% block title %}Prediction Ratio Analysis | Admin Console{% endblock %}
+
 {% block researchblock %}
+<div class="container-fluid px-lg-4">
+    <!-- Summary KPIs -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card card-custom p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-secondary small fw-semibold text-uppercase">Total Evaluated Media</span>
+                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2">
+                        <i class="fa-solid fa-film"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold text-white mb-1">{{ total_count }}</h2>
+                <small class="text-secondary">Logged video inference transactions</small>
+            </div>
+        </div>
 
+        <div class="col-md-4">
+            <div class="card card-custom p-4" style="border-left: 4px solid #f43f5e !important;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-secondary small fw-semibold text-uppercase">Synthetic / Fake Ratio</span>
+                    <div class="rounded-circle bg-danger bg-opacity-10 text-danger p-2">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold text-danger mb-1">{{ fake_ratio }}%</h2>
+                <small class="text-secondary">{{ fake_count }} Manipulated videos detected</small>
+            </div>
+        </div>
 
-<link rel="icon" href="images/icon.png" type="image/x-icon" />
-
-	<link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet">
-		<link href="https://fonts.googleapis.com/css?family=Righteous" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css?family=Fredoka+One" rel="stylesheet">
-
-
-
-		<style>
-			body {background-color:#000000;}
-			.container-fluid {padding:50px;}
-			.container{background-color:white;padding:50px;   }
-			#title{font-family: 'Fredoka One', cursive;
-}
-			.text-uppercase{
-			font-family: 'Righteous', cursive;
-
-			}
-			.tweettext{
-
-    border: 2px solid yellowgreen;
-    width: 1104px;
-    height: 442px;
-    overflow: scroll;
-    background-color:;
-}
-		.style1 {
-	color: #FF0000;
-	font-weight: bold;
-}
-.style7 {color: #FFFF00}
-        </style>
-
-	<body>
-	<div class="container-fluid">
-		<div class="container">
-
-			<div class="row">
-				<div class="col-md-5">
-
-
-
- 					<form role="form" method="POST" >
-						{% csrf_token %}
-						<fieldset>
-                            <p align="center" class="text-uppercase pull-center style1">View Deep Fake Prediction Found Ratio Details</p>
-                            <hr>
-                            <div>
-                               <table border="5" align="center" bordercolor="#FF00FF">
-                      <tr><td bgcolor="#FF0000"><div align="center"><span class="style10 style7">Prediction Type</span></div></td>
-                          <td bgcolor="#FF0000"><div align="center"><span class="style10 style7">Ratio</span></div></td>
-                      </tr>
-                            {% for object in objs %}
-                      <tr>
-                                        <td bgcolor="#FFFFFF" style="color:red; font-size:20px; font-family:fantasy" ><div align="center">{{object.names}}</div></td>
-                                        <td bgcolor="#FF0000" style="font-family:monospace; font-size:19px; "><div align="center" class="style9"><span class="style7">{{object.ratio}}</span></div></td>
-                                 </tr>
-
-                                        {% endfor %}
-                      </table>
-
-
-
-                            </div>
-
-
-
-
-						</fieldset>
-					</form>
-				</div>
-
-				<div class="col-md-2">
-					<!-------null------>
-				</div>
+        <div class="col-md-4">
+            <div class="card card-custom p-4" style="border-left: 4px solid #10b981 !important;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-secondary small fw-semibold text-uppercase">Authentic / Real Ratio</span>
+                    <div class="rounded-circle bg-success bg-opacity-10 text-success p-2">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold text-success mb-1">{{ real_ratio }}%</h2>
+                <small class="text-secondary">{{ real_count }} Verified authentic videos</small>
             </div>
         </div>
     </div>
+
+    <!-- Ratio Breakdown Card -->
+    <div class="card card-custom">
+        <div class="card-header-custom d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold text-white">
+                <i class="fa-solid fa-chart-pie text-info me-2"></i> Distribution Breakdown
+            </h5>
+            <div class="d-flex gap-2">
+                <a href="{% url 'charts' 'pie' %}" class="btn btn-outline-info btn-sm rounded-pill">
+                    <i class="fa-solid fa-chart-pie me-1"></i> Interactive Pie Chart
+                </a>
+                <a href="{% url 'charts' 'line' %}" class="btn btn-outline-primary btn-sm rounded-pill">
+                    <i class="fa-solid fa-chart-line me-1"></i> Line Chart
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body p-4">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-6">
+                    <h6 class="text-secondary small fw-bold text-uppercase mb-3">Forensic Ratio Bars</h6>
+                    
+                    <!-- Fake progress -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between text-secondary small mb-1">
+                            <span class="fw-semibold text-danger"><i class="fa-solid fa-circle me-1" style="font-size: 8px;"></i> FAKE (Manipulated)</span>
+                            <span class="fw-bold text-danger">{{ fake_ratio }}% ({{ fake_count }} files)</span>
+                        </div>
+                        <div class="progress bg-dark" style="height: 12px; border-radius: 6px;">
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: {{ fake_ratio }}%;" aria-valuenow="{{ fake_ratio }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+
+                    <!-- Real progress -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between text-secondary small mb-1">
+                            <span class="fw-semibold text-success"><i class="fa-solid fa-circle me-1" style="font-size: 8px;"></i> REAL (Authentic)</span>
+                            <span class="fw-bold text-success">{{ real_ratio }}% ({{ real_count }} files)</span>
+                        </div>
+                        <div class="progress bg-dark" style="height: 12px; border-radius: 6px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ real_ratio }}%;" aria-valuenow="{{ real_ratio }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="table-responsive">
+                        <table class="table table-dark-custom mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Classification Label</th>
+                                    <th>Occurrence Count</th>
+                                    <th>Percentage Ratio</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="badge-fake">FAKE</span></td>
+                                    <td class="font-monospace">{{ fake_count }}</td>
+                                    <td class="font-monospace fw-bold text-danger">{{ fake_ratio }}%</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge-real">REAL</span></td>
+                                    <td class="font-monospace">{{ real_count }}</td>
+                                    <td class="font-monospace fw-bold text-success">{{ real_ratio }}%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
-    <tr>

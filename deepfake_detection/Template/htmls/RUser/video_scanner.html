@@ -1,0 +1,276 @@
+{% extends 'RUser/design.html' %}
+{% block title %}Live Deepfake Media Scanner | Computer Vision Forensics{% endblock %}
+
+{% block userblock %}
+<div class="container py-2">
+    <!-- Header -->
+    <div class="text-center mb-4">
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-danger bg-opacity-10 border border-danger border-opacity-25 text-danger mb-2">
+            <i class="fa-solid fa-atom"></i>
+            <span class="small fw-bold">Neural Forensics Engine Active</span>
+        </div>
+        <h2 class="fw-bold text-white mb-2">Real-Time Deepfake Video & Image Scanner</h2>
+        <p class="text-secondary small max-w-700 mx-auto">
+            Extracts facial frames and inspects micro-textures, 2D Fast Fourier Transform (FFT) power spectra, and boundary blending artifacts using <strong>MesoInception-4</strong>.
+        </p>
+    </div>
+
+    <!-- Upload Card -->
+    <div class="card card-custom mb-4">
+        <div class="card-header-custom d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <h5 class="mb-1 fw-bold text-white fs-6">
+                    <i class="fa-solid fa-cloud-arrow-up text-primary me-2"></i> Upload Video or Photo for Forensic Examination
+                </h5>
+                <small class="text-secondary">Supported formats: MP4, AVI, MOV, WEBM, JPG, PNG, WEBP</small>
+            </div>
+            <!-- Demo Quick Test Buttons -->
+            <div class="d-flex flex-wrap gap-2">
+                <form method="POST" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="demo_choice" value="demo_video">
+                    <button type="submit" class="btn btn-outline-info btn-sm rounded-pill">
+                        <i class="fa-solid fa-play me-1"></i> Demo Video
+                    </button>
+                </form>
+                <form method="POST" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="demo_choice" value="demo_real">
+                    <button type="submit" class="btn btn-outline-success btn-sm rounded-pill">
+                        <i class="fa-solid fa-image me-1"></i> Demo Authentic
+                    </button>
+                </form>
+                <form method="POST" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="demo_choice" value="demo_fake">
+                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill">
+                        <i class="fa-solid fa-mask me-1"></i> Demo Synthetic
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card-body p-4">
+            <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                {% csrf_token %}
+                <div class="row align-items-center g-3">
+                    <div class="col-lg-9">
+                        <input type="file" name="media_file" id="media_file" class="form-control" accept="video/*,image/*" required>
+                    </div>
+                    <div class="col-lg-3">
+                        <button type="submit" class="btn btn-primary-custom w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+                            <i class="fa-solid fa-microscope"></i>
+                            <span>Scan Media</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Forensic Results Section -->
+    {% if has_results %}
+    <div class="row g-4">
+        <!-- Diagnostic Summary Card -->
+        <div class="col-lg-4">
+            <div class="card card-custom h-100">
+                <div class="card-header-custom">
+                    <h5 class="mb-0 fw-bold text-white fs-6">
+                        <i class="fa-solid fa-clipboard-check text-primary me-2"></i> Diagnostic Verdict
+                    </h5>
+                </div>
+
+                <div class="card-body p-4 text-center d-flex flex-column justify-content-between">
+                    <div>
+                        <small class="text-secondary d-block mb-2 font-monospace">Examined: {{ filename }}</small>
+                        
+                        {% if report.verdict == 'REAL' %}
+                            <div class="rounded-circle p-4 d-inline-flex align-items-center justify-content-center mb-3" style="background: rgba(16, 185, 129, 0.15); border: 2px solid #10b981; width: 100px; height: 100px;">
+                                <i class="fa-solid fa-shield-check fa-4x text-success"></i>
+                            </div>
+                            <h3 class="fw-bolder text-success mb-1">AUTHENTIC MEDIA</h3>
+                            <div class="badge-real d-inline-block fs-6 mb-3">CONFIDENCE: {{ report.confidence }}% REAL</div>
+                            <p class="text-secondary small">
+                                Natural continuous frequency rolloff and organic biological texture observed across facial regions.
+                            </p>
+                        {% else %}
+                            <div class="rounded-circle p-4 d-inline-flex align-items-center justify-content-center mb-3" style="background: rgba(239, 68, 68, 0.15); border: 2px solid #ef4444; width: 100px; height: 100px;">
+                                <i class="fa-solid fa-triangle-exclamation fa-4x text-danger"></i>
+                            </div>
+                            <h3 class="fw-bolder text-danger mb-1">DEEPFAKE DETECTED</h3>
+                            <div class="badge-fake d-inline-block fs-6 mb-3">CONFIDENCE: {{ report.confidence }}% SYNTHETIC</div>
+                            <p class="text-secondary small">
+                                Neural synthesis artifacts, deconvolution checkerboard patterns, or blending boundary seams identified.
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25 text-start mt-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small text-secondary">Analysis Mode:</span>
+                            <span class="small fw-bold text-white">{{ report.media_type|upper }} SCAN</span>
+                        </div>
+                        {% if report.duration_sec %}
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small text-secondary">Video Duration:</span>
+                            <span class="small font-monospace text-white">{{ report.duration_sec }}s ({{ report.frames_analyzed }} frames)</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small text-secondary">Peak Frame Anomaly:</span>
+                            <span class="small font-monospace text-danger">{{ report.peak_fake_score }}%</span>
+                        </div>
+                        {% endif %}
+                        <div class="d-flex justify-content-between">
+                            <span class="small text-secondary">CNN Model:</span>
+                            <span class="badge bg-secondary font-monospace">MesoInception-4</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Evidence & Timeline Column -->
+        <div class="col-lg-8">
+            <div class="card card-custom h-100">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-white fs-6">
+                        <i class="fa-solid fa-chart-line text-primary me-2"></i> 
+                        {% if report.media_type == 'video' %}
+                            Frame-by-Frame Manipulation Timeline
+                        {% else %}
+                            Annotated Facial Bounding Boxes
+                        {% endif %}
+                    </h5>
+                    <span class="badge bg-dark border border-secondary text-secondary font-monospace">Forensic Visuals</span>
+                </div>
+
+                <div class="card-body p-4">
+                    {% if report.media_type == 'video' %}
+                        <!-- Timeline Chart -->
+                        <div style="position: relative; height: 260px;" class="mb-4">
+                            <canvas id="timelineChart"></canvas>
+                        </div>
+
+                        <!-- Keyframe Face Crops Gallery -->
+                        {% if report.keyframe_previews %}
+                            <h6 class="fw-bold text-white small text-uppercase mb-3">
+                                <i class="fa-solid fa-images text-info me-1"></i> Extracted Face Keyframes & Confidence
+                            </h6>
+                            <div class="row g-3">
+                                {% for k in report.keyframe_previews %}
+                                    <div class="col-6 col-md-3">
+                                        <div class="p-2 rounded-3 bg-dark border border-secondary border-opacity-25 text-center">
+                                            <img src="{{ k.thumbnail }}" class="img-fluid rounded-2 mb-2" alt="Face Frame" style="max-height: 110px; width: 100%; object-fit: cover;">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-secondary font-monospace">{{ k.time_sec }}s</small>
+                                                {% if k.status == 'REAL' %}
+                                                    <span class="badge bg-success-subtle text-success small font-monospace">{{ k.fake_score }}%</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger-subtle text-danger small font-monospace">{{ k.fake_score }}%</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                    {% else %}
+                        <!-- Annotated Image Preview -->
+                        <div class="text-center p-2 rounded-3 bg-dark border border-secondary border-opacity-25 mb-3">
+                            <img src="{{ report.annotated_preview }}" class="img-fluid rounded-3" alt="Forensic Scan Preview" style="max-height: 380px;">
+                        </div>
+                        
+                        <div class="row g-2 text-start">
+                            <div class="col-md-4">
+                                <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25">
+                                    <small class="text-secondary d-block">MesoNet Texture Score:</small>
+                                    <span class="fw-bold text-white font-monospace">{{ report.detailed_metrics.meso_fake_pct|default:"—" }}%</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25">
+                                    <small class="text-secondary d-block">2D-FFT Spectral Noise:</small>
+                                    <span class="fw-bold text-white font-monospace">{{ report.detailed_metrics.fft_score_pct|default:"—" }}%</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25">
+                                    <small class="text-secondary d-block">Boundary Seam Disparity:</small>
+                                    <span class="fw-bold text-white font-monospace">{{ report.detailed_metrics.boundary_score_pct|default:"—" }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if report.media_type == 'video' %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const timelineLabels = [
+        {% for t in report.timeline %}
+            "{{ t.time_label }}",
+        {% endfor %}
+    ];
+
+    const fakeData = [
+        {% for t in report.timeline %}
+            {{ t.fake_score }},
+        {% endfor %}
+    ];
+
+    const ctx = document.getElementById('timelineChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: timelineLabels,
+            datasets: [{
+                label: 'Deepfake Anomaly Score (%)',
+                data: fakeData,
+                backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                borderColor: '#ef4444',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.35,
+                pointBackgroundColor: fakeData.map(v => v >= 50 ? '#ef4444' : '#10b981'),
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { color: '#cbd5e1', font: { size: 12 } }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` Anomaly Score: ${ctx.parsed.y}%`
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                    ticks: { color: '#94a3b8', callback: v => v + '%' }
+                },
+                x: {
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#cbd5e1' },
+                    title: { display: true, text: 'Video Playback Timestamp (mm:ss)', color: '#94a3b8' }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+{% endblock %}
